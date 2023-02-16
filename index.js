@@ -13,7 +13,7 @@ async function main() {
         process.exit()
     })
 
-    await initDiscordCommands()
+   // await initDiscordCommands()
 
     const client = new Client({
         intents: [
@@ -33,49 +33,47 @@ async function main() {
     });
 
     client.on("messageCreate", async message => {
-        if (process.env.ENABLE_DIRECT_MESSAGES !== "true" || message.channel.type != ChannelType.DM || message.author.bot) {
-            return;
-        }
-        const user = message.author
+        let contentMsg = message.content.toLowerCase();
+        console.log(contentMsg)
+        if (contentMsg.startsWith("..")) {
 
-        console.log("----Direct Message---")
-        console.log("Date    : " + new Date())
-        console.log("UserId  : " + user.id)
-        console.log("User    : " + user.username)
-        console.log("Message : " + message.content)
-        console.log("--------------")
+            contentMsg = contentMsg.slice(`..`.length);
+            if (contentMsg.startsWith(" ")) contentMsg = contentMsg.slice(` `.length);
+            console.log(contentMsg)
+            if (message.author.bot) {
+                return;
+            }
+            const user = message.author
 
-        if (message.content.toLowerCase() == "reset") {
-            Conversations.resetConversation(user.id)
-            user.send("Who are you ?")
-            return;
-        }
+            console.log("----Direct Message---")
+            console.log("Date    : " + new Date())
+            console.log("UserId  : " + user.id)
+            console.log("User    : " + user.username)
+            console.log("Message : " + message.content)
+            console.log("--------------")
 
-        let conversationInfo = Conversations.getConversation(user.id)
-        try {
-            let sentMessage = await user.send("Hmm, let me think...")
-            askQuestion(message.content, async (response) => {
-                if (response.length >= MAX_RESPONSE_CHUNK_LENGTH) {
-                    splitAndSendResponse(response, user)
-                } else {
-                    await sentMessage.edit(response)
-                }
-            }, { conversationInfo })
-        } catch (e) {
-            console.error(e)
+            if (contentMsg.toLowerCase() == "reset") {
+                Conversations.resetConversation(user.id)
+                user.send("ㄟ？！你...你是...誰？")
+                return;
+            }
+
+            let conversationInfo = Conversations.getConversation(user.id)
+            try {
+                let sentMessage = await message.reply("嗯...讓我想想...")
+                askQuestion(contentMsg, async (response) => {
+                    if (response.length >= MAX_RESPONSE_CHUNK_LENGTH) {
+                        splitAndSendResponse(response, user)
+                    } else {
+                        await sentMessage.edit(response)
+                    }
+                }, { conversationInfo })
+            } catch (e) {
+                console.error(e)
+            }
         }
     })
 
-    client.on("interactionCreate", async interaction => {
-        switch (interaction.commandName) {
-            case "ask":
-                handle_interaction_ask(interaction)
-                break;
-            case "image":
-                handle_interaction_image(interaction)
-                break
-        }
-    });
 
     client.login(process.env.DISCORD_BOT_TOKEN);
 }

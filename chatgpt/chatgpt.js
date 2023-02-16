@@ -27,7 +27,7 @@ export async function askQuestion(question, cb, opts = {}) {
     const { conversationInfo } = opts
 
     let tmr = setTimeout(() => {
-        cb("Oppss, something went wrong! (Timeout)")
+        cb("再...再給我一些時間... (Timeout)")
     }, 120000)
 
     if (process.env.CONVERSATION_START_PROMPT.toLowerCase() != "false" && conversationInfo.newConversation) {
@@ -40,11 +40,11 @@ export async function askQuestion(question, cb, opts = {}) {
             conversationInfo.parentMessageId = response.id
             clearTimeout(tmr)
             tmr = setTimeout(() => {
-                cb("Oppss, something went wrong! (Timeout)")
+                cb("再...再給我一些時間... (Timeout)")
             }, 120000)
         }catch(e){
             clearTimeout(tmr)
-            cb("Oppss, something went wrong! (Error)")
+            cb("喔不！我短路了... (Error)")
             return;
         }
     }
@@ -58,7 +58,7 @@ export async function askQuestion(question, cb, opts = {}) {
         conversationInfo.parentMessageId = response.id
         cb(response.text)
     }catch(e){
-        cb("Oppss, something went wrong! (Error)")
+        cb("喔不！我短路了... (Error)")
         console.error("dm error : " + e)
     }finally{
         clearTimeout(tmr)
