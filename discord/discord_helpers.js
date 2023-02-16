@@ -30,12 +30,12 @@ export function createEmbedForAskCommand(user, prompt, response) {
     return embed
 }
 
-export async function splitAndSendResponse(resp, user) {
+export async function splitAndSendResponse(resp, message) {
     let tryCount = 3;
     while (resp.length > 0 && tryCount > 0) {
         try {
             let end = Math.min(MAX_RESPONSE_CHUNK_LENGTH, resp.length)
-            await user.send(resp.slice(0, end))
+            await message.send(resp.slice(0, end))
             resp = resp.slice(end, resp.length)
         } catch (e) {
             tryCount--

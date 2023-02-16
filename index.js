@@ -1,6 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config()
-
+import fetch from 'node-fetch';
 import { Client, GatewayIntentBits, Partials, ChannelType } from 'discord.js'
 import { initChatGPT, askQuestion } from './chatgpt/chatgpt.js'
 import { initDiscordCommands, handle_interaction_ask, handle_interaction_image } from './discord/discord_commands.js'
@@ -34,21 +34,25 @@ async function main() {
 
     client.on("messageCreate", async message => {
         let contentMsg = message.content.toLowerCase();
-        console.log(contentMsg)
         if (contentMsg.startsWith("..")) {
 
-            contentMsg = contentMsg.slice(`..`.length);
+            let isServer = (contentMsg.startsWith("...") && message.guild) ? true : false ;
+
+            const user = isServer ? message.guild : message.author
+            contentMsg = isServer ? contentMsg.slice(`...`.length) : contentMsg.slice(`..`.length);
             if (contentMsg.startsWith(" ")) contentMsg = contentMsg.slice(` `.length);
-            console.log(contentMsg)
-            if (message.author.bot) {
+            if (message.author.bot || contentMsg.startsWith(".") || contentMsg == "") {
                 return;
             }
-            const user = message.author
 
             console.log("----Direct Message---")
             console.log("Date    : " + new Date())
-            console.log("UserId  : " + user.id)
-            console.log("User    : " + user.username)
+            console.log("UserId  : " + message.author.id)
+            console.log("User    : " + message.author.username)
+            if(isServer){
+                console.log("guildId : " + message.guild.id)
+                console.log("guild   : " + message.guild.name)
+            }
             console.log("Message : " + message.content)
             console.log("--------------")
 
@@ -59,6 +63,9 @@ async function main() {
             }
 
             let conversationInfo = Conversations.getConversation(user.id)
+            console.log("conversationId : " + conversationInfo.conversationId)
+            console.log("parentMessageId : " + conversationInfo.parentMessageId)
+            console.log("--------------")
             try {
                 let sentMessage = await message.reply("嗯...讓我想想...")
                 askQuestion(contentMsg, async (response) => {
