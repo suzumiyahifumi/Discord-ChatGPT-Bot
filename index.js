@@ -73,12 +73,13 @@ async function main() {
                 console.log("--------------")
                 console.log("重新載入")
                 console.log("conversationId : " + conversationId)
-                console.log("parentMessageId : " + parentMessageId)
+                console.log("parentMessageId: " + parentMessageId)
                 console.log("--------------")
-                contentMsg = "妳還在嗎？"
+                await message.reply("已經回復對話！");
+                return;
             }
             console.log("conversationId : " + conversationInfo.conversationId)
-            console.log("parentMessageId : " + conversationInfo.parentMessageId)
+            console.log("parentMessageId: " + conversationInfo.parentMessageId)
             console.log("--------------")
             try {
                 let sentMessage = await message.reply("嗯...讓我想想...")
