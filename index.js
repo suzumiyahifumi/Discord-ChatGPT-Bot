@@ -101,7 +101,7 @@ async function main() {
                     if (response.length >= MAX_RESPONSE_CHUNK_LENGTH) {
                         splitAndSendResponse(response, user)
                     } else {
-                        await sentMessage.edit(getEmbed(response, Conversations.getConversation(user.id)))
+                        await sentMessage.edit(getEmbed(response, Conversations.getConversation(user.id), variants))
                     }
                 }, { conversationInfo })
             } catch (e) {
@@ -110,14 +110,14 @@ async function main() {
         }
     })
 
-    function getEmbed(message, conversation) {
+    function getEmbed(message, conversation, variants) {
         let embed = new EmbedBuilder()
             .setDescription(message)
             .setFooter({
                 text: `${conversation.conversationId}#${conversation.parentMessageId}`
             })
         return {
-            content: (variants)? "差分對話" : "",
+            content: (variants)? "已切換對話分支！" : "",
             embeds: [embed]
         };
     }

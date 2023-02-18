@@ -1,5 +1,7 @@
+import dotenv from 'dotenv'
+dotenv.config()
 const conversationMap = {}
-let conversationTimeLimit = parseInt(process.env.CONVERSATION_MEMORY_SECONDS)*1000
+let conversationTimeLimit = parseInt(process.env.CONVERSATION_MEMORY_SECONDS) * 1000
 console.log("conversationTimeLimit: ", conversationTimeLimit)
 if(!conversationTimeLimit || conversationTimeLimit <= 0){
     conversationTimeLimit = 300000
@@ -49,7 +51,7 @@ function cleanUnactiveConversations(){
     }catch(e){
 
     }finally{
-        setTimeout(cleanUnactiveConversations,86400000)
+        setTimeout(cleanUnactiveConversations,60000)
     }
 }
 
