@@ -1,17 +1,25 @@
 const conversationMap = {}
 let conversationTimeLimit = parseInt(process.env.CONVERSATION_MEMORY_SECONDS)*1000
-
+console.log("conversationTimeLimit: ", conversationTimeLimit)
 if(!conversationTimeLimit || conversationTimeLimit <= 0){
     conversationTimeLimit = 300000
 }
 
-function getConversation(userid){
+function getConversation(userid, ids = false){
     let conversation = {
         conversationId:undefined,
         parentMessageId:undefined
     }
-    
-    if(conversationMap[userid]){
+
+    if(ids!=false) {
+        conversation = {
+            conversationId:ids.conversationId,
+            parentMessageId:ids.parentMessageId
+        }
+        conversation.newConversation = false
+        conversation.lastSeen = Date.now()
+        conversationMap[userid] = conversation
+    } else if(conversationMap[userid]){
         conversation = conversationMap[userid]
         conversation.newConversation = false
     }else{
@@ -41,7 +49,7 @@ function cleanUnactiveConversations(){
     }catch(e){
 
     }finally{
-        setTimeout(cleanUnactiveConversations,60000)
+        setTimeout(cleanUnactiveConversations,86400000)
     }
 }
 

@@ -62,7 +62,21 @@ async function main() {
                 return;
             }
 
-            let conversationInfo = Conversations.getConversation(user.id)
+            let conversationInfo = Conversations.getConversation(user.id);
+            if (contentMsg.startsWith("-bid")) {
+                contentMsg = contentMsg.slice(`-bid`.length);
+                let [conversationId, parentMessageId] = contentMsg.split(";");
+                conversationInfo = Conversations.getConversation(user.id, {
+                    conversationId,
+                    parentMessageId
+                })
+                console.log("--------------")
+                console.log("重新載入")
+                console.log("conversationId : " + conversationId)
+                console.log("parentMessageId : " + parentMessageId)
+                console.log("--------------")
+                contentMsg = "妳還在嗎？"
+            }
             console.log("conversationId : " + conversationInfo.conversationId)
             console.log("parentMessageId : " + conversationInfo.parentMessageId)
             console.log("--------------")

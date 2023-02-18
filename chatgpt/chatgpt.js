@@ -5,9 +5,10 @@ const chatGPT = {
     sendMessage: null,
 }
 
-export async function initChatGPT() {
+export async function initChatGPT(init_setting = {}) {
     const api = new ChatGPTAPI({
-        apiKey: process.env.OPENAI_API_KEY
+        apiKey: process.env.OPENAI_API_KEY,
+        ...init_setting
     })
 
     chatGPT.sendMessage = (message, opts = {}) => {
