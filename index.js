@@ -6,6 +6,7 @@ import { initChatGPT, askQuestion } from './chatgpt/chatgpt.js'
 import { initDiscordCommands, handle_interaction_ask, handle_interaction_image } from './discord/discord_commands.js'
 import { splitAndSendResponse, MAX_RESPONSE_CHUNK_LENGTH } from './discord/discord_helpers.js'
 import Conversations from './chatgpt/conversations.js'
+import { EmbedBuilder  } from 'discord.js'
 
 async function main() {
     await initChatGPT().catch(e => {
@@ -63,6 +64,19 @@ async function main() {
             }
 
             let conversationInfo = Conversations.getConversation(user.id);
+
+            let variants = false;
+            if (message.reference) {
+                let [conversationId, parentMessageId] = (await message.fetchReference()).embeds[0].data.footer.text.split("#");
+                if (conversationId == undefined || parentMessageId == undefined) return
+                conversationInfo = Conversations.getConversation(user.id, {
+                    conversationId,
+                    parentMessageId
+                })
+                variants = true;
+                console.log(`已經回復對話！`)
+            }
+
             if (contentMsg.startsWith("-bid")) {
                 contentMsg = contentMsg.slice(`-bid`.length);
                 let [conversationId, parentMessageId] = contentMsg.split(";");
@@ -87,7 +101,7 @@ async function main() {
                     if (response.length >= MAX_RESPONSE_CHUNK_LENGTH) {
                         splitAndSendResponse(response, user)
                     } else {
-                        await sentMessage.edit(response)
+                        await sentMessage.edit(getEmbed(response, Conversations.getConversation(user.id)))
                     }
                 }, { conversationInfo })
             } catch (e) {
@@ -95,6 +109,18 @@ async function main() {
             }
         }
     })
+
+    function getEmbed(message, conversation) {
+        let embed = new EmbedBuilder()
+            .setDescription(message)
+            .setFooter({
+                text: `${conversation.conversationId}#${conversation.parentMessageId}`
+            })
+        return {
+            content: (variants)? "差分對話" : "",
+            embeds: [embed]
+        };
+    }
 
 
     client.login(process.env.DISCORD_BOT_TOKEN);
