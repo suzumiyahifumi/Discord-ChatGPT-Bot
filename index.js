@@ -7,9 +7,13 @@ import { initDiscordCommands, handle_interaction_ask, handle_interaction_image }
 import { splitAndSendResponse, MAX_RESPONSE_CHUNK_LENGTH } from './discord/discord_helpers.js'
 import Conversations from './chatgpt/conversations.js'
 import { EmbedBuilder  } from 'discord.js'
+import Keyv from 'keyv'
+const keyv = new Keyv(process.env.MESSAGE_STORE_KEYV);
 
 async function main() {
-    await initChatGPT().catch(e => {
+    await initChatGPT({
+        messageStore: keyv
+    }).catch(e => {
         console.error(e)
         process.exit()
     })
@@ -35,7 +39,7 @@ async function main() {
 
     client.on("messageCreate", async message => {
         let contentMsg = message.content.toLowerCase();
-        if (contentMsg.startsWith("..")) {
+        if (contentMsg.startsWith("..") || contentMsg.startsWith("...")) {
 
             let isServer = (contentMsg.startsWith("...") && message.guild) ? true : false ;
 
@@ -67,14 +71,19 @@ async function main() {
 
             let variants = false;
             if (message.reference) {
-                let [conversationId, parentMessageId] = (await message.fetchReference()).embeds[0].data.footer.text.split("#");
-                if (conversationId == undefined || parentMessageId == undefined) return
-                conversationInfo = Conversations.getConversation(user.id, {
-                    conversationId,
-                    parentMessageId
-                })
-                variants = true;
-                console.log(`已經回復對話！`)
+                try{
+                    let [conversationId, parentMessageId] = (await message.fetchReference()).embeds[0].data.footer.text.split("#");
+                    if (conversationId == undefined || parentMessageId == undefined) return
+                    conversationInfo = Conversations.getConversation(user.id, {
+                        conversationId,
+                        parentMessageId
+                    })
+                    variants = true;
+                    console.log(`已經回復對話！`)
+                }
+                catch(err) {
+                    return;
+                }
             }
 
             if (contentMsg.startsWith("-bid")) {
@@ -90,7 +99,7 @@ async function main() {
                 console.log("parentMessageId: " + parentMessageId)
                 console.log("--------------")
                 await message.reply("已經回復對話！");
-                return;
+                return
             }
             console.log("conversationId : " + conversationInfo.conversationId)
             console.log("parentMessageId: " + conversationInfo.parentMessageId)
