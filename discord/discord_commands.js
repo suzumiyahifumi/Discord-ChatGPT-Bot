@@ -10,7 +10,7 @@ export const commands = [
 		description: '設定個人的 API-Key。這個 Key 只會用在你個人的對話中。',
 		options: [
 			{
-				name: "API_Key",
+				name: "api_key",
 				description: "你的 API-Key",
 				type: 3,
 				required: true
@@ -35,7 +35,7 @@ export async function handle_interaction_set_key(interaction) {
 	const user = interaction.user;
    
 	try {
-		const api_key = interaction.options.getString("API_Key");
+		const api_key = interaction.options.getString("api_key");
 		await keyv_secret.set(`${interaction.user.id}`, api_key);
 		user.send(
 			"~~                                                                                                                                                 ~~" +
