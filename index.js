@@ -3,7 +3,7 @@ dotenv.config()
 import fetch from 'node-fetch';
 import { Client, GatewayIntentBits, Partials, ChannelType } from 'discord.js'
 import { initChatGPT, askQuestion } from './chatgpt/chatgpt.js'
-import { initDiscordCommands, handle_interaction_ask, handle_interaction_image } from './discord/discord_commands.js'
+import { initDiscordCommands, handle_interaction_set_API } from './discord/discord_commands.js'
 import { splitAndSendResponse, MAX_RESPONSE_CHUNK_LENGTH } from './discord/discord_helpers.js'
 import Conversations from './chatgpt/conversations.js'
 import { EmbedBuilder  } from 'discord.js'
@@ -18,7 +18,7 @@ async function main() {
         process.exit()
     })
 
-   // await initDiscordCommands()
+    await initDiscordCommands()
 
     const client = new Client({
         intents: [
@@ -130,6 +130,14 @@ async function main() {
             embeds: [embed]
         };
     }
+
+    client.on("interactionCreate", async interaction => {
+        switch (interaction.commandName) {
+            case "setKey":
+                handle_interaction_ask(interaction)
+                break;
+        }
+    });
 
 
     client.login(process.env.DISCORD_BOT_TOKEN);
