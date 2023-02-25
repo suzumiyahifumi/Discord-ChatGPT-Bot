@@ -24,7 +24,7 @@ export async function initDiscordCommands() {
 
 	try {
 		console.log('Started refreshing application (/) commands.');
-		await rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID), { body: commands });
+		await rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID.toString()), { body: commands });
 		console.log('Successfully reloaded application (/) commands.');
 	} catch (error) {
 		console.error(error);
