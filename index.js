@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { Client, GatewayIntentBits, Partials, ChannelType } from 'discord.js';
 import { initChatGPT, askQuestion } from './chatgpt/chatgpt.js';
-import { initDiscordCommands, handle_interaction_set_API } from './discord/discord_commands.js';
+import { initDiscordCommands, handle_interaction_set_key } from './discord/discord_commands.js';
 import { splitAndSendResponse, MAX_RESPONSE_CHUNK_LENGTH } from './discord/discord_helpers.js';
 import Conversations from './chatgpt/conversations.js';
 import { EmbedBuilder  } from 'discord.js';
@@ -165,7 +165,7 @@ async function main() {
 	client.on("interactionCreate", async interaction => {
 		switch (interaction.commandName) {
 			case "set_key":
-				handle_interaction_set_API(interaction);
+				handle_interaction_set_key(interaction);
 				break;
 		}
 	});
