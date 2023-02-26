@@ -325,6 +325,8 @@ ${message}${this._endToken}`;
         break;
       }
       const parentMessage = await this._getMessageById(parentMessageId);
+      console.log("parentMessageId",parentMessageId)
+      console.log("parentMessage",parentMessage)
       if (!parentMessage) {
         break;
       }
