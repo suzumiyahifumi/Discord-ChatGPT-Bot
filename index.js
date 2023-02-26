@@ -129,6 +129,22 @@ async function main() {
 				}
 			}
 
+			if (contentMsg.startsWith("-bid")) {
+                contentMsg = contentMsg.slice(`-bid`.length);
+                let [conversationId, parentMessageId] = contentMsg.split(";");
+                conversationInfo = Conversations.getConversation(user.id, {
+                    conversationId,
+                    parentMessageId
+                })
+                console.log("--------------")
+                console.log("重新載入")
+                console.log("conversationId : " + conversationId)
+                console.log("parentMessageId: " + parentMessageId)
+                console.log("--------------")
+                await message.reply("已經回復對話！");
+                return
+            }
+
 			console.log("conversationId : " + conversationInfo.conversationId);
 			console.log("parentMessageId: " + conversationInfo.parentMessageId);
 			console.log("--------------");
