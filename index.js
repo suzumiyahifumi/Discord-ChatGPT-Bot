@@ -97,6 +97,7 @@ async function main() {
 
 			if (contentMsg.toLowerCase() == "reset") {
 				await Conversations.resetConversation(user.id);
+				await keyv_user.delete(user.id)
 				user.send("ㄟ？！你...你是...誰？");
 				return;
 			}

@@ -13,7 +13,7 @@ if(!conversationTimeLimit || conversationTimeLimit <= 0){
     conversationTimeLimit = 300000;
 }
 
-async function getConversation(userid, ids = false){
+async function getConversation(userid, ids = false, reset = false){
     let conversation = {
         conversationId: undefined,
         parentMessageId: undefined,
@@ -51,8 +51,8 @@ async function getConversation(userid, ids = false){
                 };
             } else if (user_msg != undefined) {
                 conversationMap[userid] = {
-                    conversationId: user_msg.conversationId,
-                    parentMessageId: user_msg.parentMessageId,
+                    conversationId: (reset!=false) ? undefined : user_msg.conversationId,
+                    parentMessageId: (reset!=false) ? undefined :user_msg.parentMessageId,
                     api_key
                 };
                 conversation = conversationMap[userid];
