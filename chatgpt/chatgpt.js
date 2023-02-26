@@ -1,5 +1,5 @@
 /* jshint esversion: 9 */
-import { ChatGPTAPI } from 'chatgpt';
+import { ChatGPTAPI } from './gpt_index.js';
 
 const chatGPT = {
     init: false,
@@ -54,7 +54,8 @@ export async function askQuestion(question, cb, opts = {}) {
     try{
         const response = await chatGPT.sendMessage(question, {
             conversationId: conversationInfo.conversationId,
-            parentMessageId: conversationInfo.parentMessageId
+            parentMessageId: conversationInfo.parentMessageId,
+            apiKey: conversationInfo.api_key
         });
         conversationInfo.conversationId = response.conversationId;
         conversationInfo.parentMessageId = response.id;

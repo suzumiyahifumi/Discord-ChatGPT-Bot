@@ -8,9 +8,10 @@ import { splitAndSendResponse, MAX_RESPONSE_CHUNK_LENGTH } from './discord/disco
 import Conversations from './chatgpt/conversations.js';
 import { EmbedBuilder  } from 'discord.js';
 import Keyv from 'keyv';
-const keyv = new Keyv(process.env.MESSAGE_STORE_KEYV);
+const keyv = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'keyv' });
 const keyv_message = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'gpt_message' });
 const keyv_user = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'user_status' });
+const keyv_secret = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'users_api_key' });
 
 async function main() {
 	await initChatGPT({
@@ -41,23 +42,34 @@ async function main() {
 
 	client.on("messageCreate", async message => {
 		let contentMsg = message.content.toLowerCase();
-		if (contentMsg.startsWith("--")) {
-			contentMsg = contentMsg.slice(`--`.length);
-			let msg = await keyv_message.get(message_id);
-			if(msg!=undefined){
-				conversationInfo = Conversations.getConversation(user.id, {
-					conversationId: msg.conversationId,
-					parentMessageId: msg.parentMessageId
-				});
-				console.log("--------------");
-				console.log("重新載入");
-				console.log("conversationId : " + msg.conversationId);
-				console.log("parentMessageId: " + msg.parentMessageId);
-				console.log("--------------");
-				await message.reply(getEmbed(msg.message_id, msg.message_id, variants, "已載入對話： `" + msg.message_id + "`\n對話內容："));
-				return;
+		if (contentMsg.startsWith("--") || contentMsg.startsWith("---")) {
+			let isServer = (contentMsg.startsWith("---") && message.guild) ? true : false ;
+			contentMsg = isServer ? contentMsg.slice(`---`.length) : contentMsg.slice(`--`.length);
+			const user = isServer ? message.guild : message.author
+			if(contentMsg != ""){
+				try{
+					let msg = await keyv_message.get(contentMsg);
+					if(msg!=undefined){
+						let conversationInfo = await Conversations.getConversation(user.id, {
+							conversationId: msg.conversationId,
+							parentMessageId: msg.parentMessageId
+						});
+						console.log("--------------");
+						console.log("重新載入");
+						console.log("conversationId : " + msg.conversationId);
+						console.log("parentMessageId: " + msg.parentMessageId);
+						console.log("--------------");
+						await message.reply(getEmbed(msg.gpt_content, msg.message_id, false, "已載入對話： `" + msg.message_id + "`\n對話內容："));
+						return;
+					} else {
+						await message.reply("哇！出錯了！無法載入此對話： `" + msg.message_id + "`！");
+					}
+				}
+				catch(err){
+					await message.reply("哇！出錯了！無法載入此對話： `" + contentMsg + "`！");
+				}
 			} else {
-				await message.reply("哇！出錯了！無法載入此對話： `" + msg.message_id + "`！");
+				await message.reply("哇！出錯了！無法載入此對話： `" + contentMsg + "`！");
 			}
 		}
 
@@ -84,15 +96,16 @@ async function main() {
 			console.log("--------------");
 
 			if (contentMsg.toLowerCase() == "reset") {
-				Conversations.resetConversation(user.id);
+				await Conversations.resetConversation(user.id);
 				user.send("ㄟ？！你...你是...誰？");
 				return;
 			}
 
-			let conversationInfo = Conversations.getConversation(user.id);
-
+			let conversationInfo = await Conversations.getConversation(user.id);
+		//	console.log(conversationInfo)
 			if (conversationInfo.err != undefined) {
 				await message.reply(conversationInfo.err);
+				return;
 			}
 
 			let variants = false;
@@ -102,7 +115,7 @@ async function main() {
 					let message_id = message_k.slice(`--`.length);
 					let msg_ref = await keyv_message.get(message_id);
 					if (msg_ref != undefined) {
-						conversationInfo = Conversations.getConversation(user.id, {
+						conversationInfo = await Conversations.getConversation(user.id, {
 							conversationId: msg_ref.conversationId,
 							parentMessageId: msg_ref.parentMessageId
 						});
@@ -124,7 +137,7 @@ async function main() {
 					if (response.length >= MAX_RESPONSE_CHUNK_LENGTH) {
 						splitAndSendResponse(response, user);
 					} else {
-						conversation = Conversations.getConversation(user.id);
+						let conversation = await Conversations.getConversation(user.id);
 						let msg = await sentMessage.edit(getEmbed(response, sentMessage.id, variants));
 						await keyv_message.set(`${msg.id}`, {
 							message_id: sentMessage.id,
@@ -165,7 +178,7 @@ async function main() {
 	client.on("interactionCreate", async interaction => {
 		switch (interaction.commandName) {
 			case "set_key":
-				handle_interaction_set_key(interaction);
+				handle_interaction_set_key(interaction, keyv_secret);
 				break;
 		}
 	});

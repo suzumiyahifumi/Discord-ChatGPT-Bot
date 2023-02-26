@@ -4,6 +4,7 @@ dotenv.config();
 import Keyv from 'keyv';
 const keyv_message = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'gpt_message' });
 const keyv_secret = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'users_api_key' });
+const keyv_user = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'user_status' });
 
 const conversationMap = {};
 let conversationTimeLimit = parseInt(process.env.CONVERSATION_MEMORY_SECONDS) * 1000;
@@ -20,7 +21,12 @@ async function getConversation(userid, ids = false){
     };
 
     if(ids!=false) {
-        let api_key = await keyv_secret.get(userid);
+        let api_key = await keyv_secret.get(`${userid}`);
+        if (api_key == undefined) {
+            return {
+                err: "尚未設定 API-Key！\n請至伺服器使用 `/` 指令完成 `個人API-Key` 設定。"
+            };
+        } 
         conversation = {
             conversationId:ids.conversationId,
             parentMessageId:ids.parentMessageId,
@@ -30,15 +36,18 @@ async function getConversation(userid, ids = false){
         conversation.lastSeen = Date.now();
         conversationMap[userid] = conversation;
     } else if(conversationMap[userid]){
+    //    console.log("RAM")
         conversation = conversationMap[userid];
         conversation.newConversation = false;
     }else{
         try {
-            let user_msg = await keyv_message.get(userid);
-            let api_key = await keyv_secret.get(userid);
+            let user_msg = await keyv_user.get(`${userid}`);
+            let api_key = await keyv_secret.get(`${userid}`);
+        //    console.log("user_msg: ",user_msg)
+        //    console.log("api_key: ",api_key)
             if (api_key == undefined) {
                 return {
-                    err: "尚未設定 API-Key！\n請使用 `/` 指令完成 `個人API-Key` 設定。"
+                    err: "尚未設定 API-Key！\n請至伺服器使用 `/` 指令完成 `個人API-Key` 設定。"
                 };
             } else if (user_msg != undefined) {
                 conversationMap[userid] = {
@@ -46,6 +55,7 @@ async function getConversation(userid, ids = false){
                     parentMessageId: user_msg.parentMessageId,
                     api_key
                 };
+                conversation = conversationMap[userid];
                 conversation.newConversation = false;
             } else {
                 conversation.api_key = api_key;

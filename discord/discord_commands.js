@@ -1,8 +1,9 @@
 /* jshint esversion: 9 */
 import { REST, Routes } from 'discord.js';
+import Conversations from '../chatgpt/conversations.js';
 
 import Keyv from 'keyv';
-const keyv_secret = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'users_api_key' });
+//const keyv_secret = new Keyv(process.env.MESSAGE_STORE_KEYV, { namespace: 'users_api_key' });
 
 export const commands = [
 	{
@@ -31,17 +32,20 @@ export async function initDiscordCommands() {
 	}
 }
 
-export async function handle_interaction_set_key(interaction) {
+export async function handle_interaction_set_key(interaction, keyv) {
 	const user = interaction.user;
    
 	try {
+		console.log("interaction.user: ", interaction.user)
 		const api_key = interaction.options.getString("api_key");
-		await keyv_secret.set(`${interaction.user.id}`, api_key);
+		let insert = await keyv.set(`${interaction.user.id}`, api_key);
+		Conversations.resetConversation(interaction.user.id);
+		console.log("insert", insert)
 		user.send(
-			"~~                                                                                                                                                 ~~" +
+			"~~                                                                                                                                                 ~~\n" +
 			"**【 通知 】**\n" +
-			"已經完成 `API-Key` 設定！" +
-			"您正在使用的 `API-Key` ： ||" + api_key + "||" +
+			"已經完成 `API-Key` 設定！\n" +
+			"您正在使用的 `API-Key` ： ||" + api_key + "||\n" +
 			"~~                                                                                                                                                 ~~");
 	} catch (e) {
 		console.error(e);
