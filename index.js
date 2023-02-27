@@ -121,7 +121,7 @@ async function main() {
 							parentMessageId: msg_ref.parentMessageId
 						});
 					}
-					variants = true;
+					variants = "已切換 `對話分枝` ...";
 					console.log(`已經回復對話！`);
 				}
 				catch(err) {
@@ -187,7 +187,7 @@ async function main() {
 				text: `--${message_id}`
 			});
 		return {
-			content: (variants)? "已切換對話分支！" : (msg!=false)? msg : "",
+			content: (variants!=false)? variants : (msg!=false)? msg : "",
 			embeds: [embed]
 		};
 	}
